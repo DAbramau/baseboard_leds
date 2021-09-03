@@ -15,7 +15,7 @@ deploy:
   access_key_id: AKIAYFGVHID5HPNJI3LU
   secret_access_key:
     secure: iXL9xSkcUJ2175+jvsy9CO2DrngAowJFOnPzpIGwV/E19flN2n32js/ABi7gH4+V3qXgHtAqP66Kq3b2QIyUe2ITetPejLA9lXH5j+u7L6P8qtEyfB1QLqpTMG94Cj7krJ5FsToIHAbf2BObxLqNeUt4eAM6sWFATVFLUad6sLZc7uZw1Fi/zPhgfBTCi+BWv3eo83oCSedQ1FX37iDQf5stlZVDwdjwHabA+gm9jXfDvkBX6WqwKed2OVGKG/2DJMBG/r0iNRLreuHUyUXRwSboVB5HsbFSsN4hMthfxdvCSK7GFCV59ZtC0H/6uonm9/yyLN2Y3ulWIKGnC6BFQHc/fuNH7R5gUPUfcIqYmlAaXU8Gn7R0av0SW64eLZ090bePBZu/ga52tXosJ71tVxjSSpx0/7rA67AHtgYtESVPg8YhFLTXPhbsaFiYYV9gzBdmt47doYEWEJQH/sHTW9p0OCKqGez23OZY8WwR0Un7R5VY61J3nmgNPrKquZUEDR+yJLWr5cyUJ6kfImQtWt62Rgp8hik2nB20KK2hOAAr/q4kj+KK5HlK2BKtEQKFI79Xa5niU0DDlWOFr1jKh5L5HW1e/PzxoJ8lfdcfOmsLfbYdNMATwc+sAO/MgSffPnr8jiWwttdpuyh69u/YkS57mH9utDgZyfoZeLwmU/g=
-  bucket: baseboard_leds
+  bucket: baseboard-leds
   acl: private
   on:
     repo: DAbramau/baseboard_leds_fw
