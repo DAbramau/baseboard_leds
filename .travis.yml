@@ -12,8 +12,8 @@ script:
 - pio run
 after_success:
 - mkdir out
-- cp .pio/build/esp32dev/firmware.bin out/firmware-$((TRAVIS_BUILD_NUMBER - 1)).bin
-- cp .pio/build/esp32dev/partitions.bin out/partitions-$((TRAVIS_BUILD_NUMBER - 1)).bin
+- cp .pio/build/esp32dev/firmware.bin out/firmware-$((TRAVIS_BUILD_NUMBER)).bin
+- cp .pio/build/esp32dev/partitions.bin out/partitions-$((TRAVIS_BUILD_NUMBER)).bin
 deploy:
   provider: s3
   access_key_id: AKIAYFGVHID5HPNJI3LU
@@ -26,3 +26,4 @@ deploy:
     branch: main
   skip_cleanup: 'true'
   local-dir: out
+  upload-dir: $((TRAVIS_BUILD_NUMBER))
