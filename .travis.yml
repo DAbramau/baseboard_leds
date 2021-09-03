@@ -21,6 +21,5 @@ deploy:
     repo: DAbramau/baseboard_leds_fw
     branch: main
   skip_cleanup: 'true'
-  file:
-  - ".pio/build/esp32dev/firmware.bin"
-  - ".pio/build/esp32dev/partitions.bin"
+  local-dir: .pio/build/esp32dev
+  glob: "*.bin"
