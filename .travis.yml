@@ -10,6 +10,10 @@ install:
 - pio update
 script:
 - pio run
+after_success:
+- mkdir out
+- cp .pio/build/esp32dev/firmware.bin out/firmware-${TRAVIS_JOB_ID - 1}.bin
+- cp .pio/build/esp32dev/partitions.bin out/partitions-${TRAVIS_JOB_ID - 1}.bin
 deploy:
   provider: s3
   access_key_id: AKIAYFGVHID5HPNJI3LU
@@ -21,5 +25,4 @@ deploy:
     repo: DAbramau/baseboard_leds_fw
     branch: main
   skip_cleanup: 'true'
-  local-dir: .pio/build/esp32dev
-  glob: "*.bin"
+  local-dir: out
