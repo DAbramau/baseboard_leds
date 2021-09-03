@@ -3,7 +3,6 @@ python:
     - "3.9"
 
 # Cache PlatformIO packages using Travis CI container-based infrastructure
-sudo: false
 cache:
     directories:
         - "~/.platformio"
@@ -15,3 +14,13 @@ install:
 
 script:
     - pio run 
+
+deploy:
+    provider: s3
+    access_key_id: "AKIAYFGVHID5GUN4WSOG"
+    secret_access_key: "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"
+    bucket: "baseboard_leds"
+    skip_cleanup: true
+    file:
+    - ".pio/build/esp32dev/firmware.bin"
+    - ".pio/build/esp32dev/partitions.bin"
