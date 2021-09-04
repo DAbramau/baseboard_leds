@@ -26,4 +26,6 @@ jobs:
         cp .pio/build/esp32dev/partitions.bin out/bbl_partitions-$GITHUB_RUN_NUMBER.bin
         cp .pio/build/esp32dev/firmware.bin out/bbl_firmware-$GITHUB_RUN_NUMBER.bin
         cp .pio/build/esp32dev/spiffs.bin out/bbl_spiffs-$GITHUB_RUN_NUMBER.bin
+        cp /home/runner/.platformio/packages/framework-arduinoespressif32/tools/sdk/bin/bootloader_dio_40m.bin out/bbl_bootloader-$GITHUB_RUN_NUMBER.bin
+        cp /home/runner/.platformio/packages/framework-arduinoespressif32/tools/partitions/boot_app0.bin out/bbl_boot_app0-$GITHUB_RUN_NUMBER.bin
         ls out
