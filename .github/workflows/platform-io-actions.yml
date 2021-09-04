@@ -19,6 +19,8 @@ jobs:
       run: |
         echo "#define BUILD_VERSION ($GITHUB_RUN_NUMBER)" > src/version.h
         echo "#define BUILD_SERVER (\"github\")" >> src/version.h
+        echo "#define CONFIG_WIFI_SSID (\"${{ secrets.DEFAULT_WIFI_SSID }}\")" > src/credentials.h
+        echo "#define CONFIG_WIFI_PASSWORD (\"${{ secrets.DEFAULT_WIFI_PASSWORD }}\")" >> src/credentials.h
     - name: Build FW
       run: pio run
     - name: Build SPIFFS
@@ -36,3 +38,11 @@ jobs:
       with:
         name: firmware-${{ github.run_number }}
         path: out/
+    - name: upload to S3
+      uses: shallwefootball/s3-upload-action@master
+      with:
+        aws_key_id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        aws_secret_access_key: ${{ secrets.AWS_SECRET_KEY }}
+        aws_bucket: ${{ secrets.ASW_BUCKET }}        
+        source_dir: out
+        destanation_dir: fw_${{ github.run_number }}
