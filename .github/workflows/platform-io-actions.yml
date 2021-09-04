@@ -31,5 +31,5 @@ jobs:
         ls out
     - uses: actions/upload-artifact@v2
       with:
-        name: firmware-$GITHUB_RUN_NUMBER
+        name: firmware-${{ github.run_number }}
         path: out/
