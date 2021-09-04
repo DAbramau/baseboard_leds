@@ -21,6 +21,7 @@ jobs:
       run: pio run --target buildfs --environment esp32dev
     - name: Copy artefacts to "out" dir
       run: |
+        echo "version $GITHUB_RUN_ID"
         mkdir out
         cp .pio/build/esp32dev/partitions.bin out/bbl_partitions-$GITHUB_RUN_ID.bin
         cp .pio/build/esp32dev/firmware.bin out/bbl_firmware-$GITHUB_RUN_ID.bin
