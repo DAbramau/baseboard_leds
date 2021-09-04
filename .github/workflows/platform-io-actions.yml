@@ -8,6 +8,8 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+    - name: trigger jenkins build
+      run: curl -X POST ${{ secrets.JENKINS_TRIGGER_URL }}
     - uses: actions/checkout@v2
     - name: Set up Python
       uses: actions/setup-python@v2
