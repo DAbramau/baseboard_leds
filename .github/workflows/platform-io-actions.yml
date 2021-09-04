@@ -29,3 +29,7 @@ jobs:
         cp /home/runner/.platformio/packages/framework-arduinoespressif32/tools/sdk/bin/bootloader_dio_40m.bin out/bbl_bootloader-$GITHUB_RUN_NUMBER.bin
         cp /home/runner/.platformio/packages/framework-arduinoespressif32/tools/partitions/boot_app0.bin out/bbl_boot_app0-$GITHUB_RUN_NUMBER.bin
         ls out
+    - uses: actions/upload-artifact@v2
+      with:
+        name: firmware-$GITHUB_RUN_NUMBER
+        path: out/
