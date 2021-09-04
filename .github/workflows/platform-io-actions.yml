@@ -39,10 +39,10 @@ jobs:
         name: firmware-${{ github.run_number }}
         path: out/
     - name: upload to S3
-      uses: shallwefootball/s3-upload-action@master
+      uses: jakejarvis/s3-sync-action@master
       with:
-        aws_key_id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-        aws_secret_access_key: ${{ secrets.AWS_SECRET_KEY }}
-        aws_bucket: ${{ secrets.ASW_BUCKET }}        
-        source_dir: out
-        destanation_dir: fw_${{ github.run_number }}
+        AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        AWS_SECRET_ACCESS_KEY_ID: ${{ secrets.AWS_SECRET_KEY }}
+        AWS_S3_BUCKET: ${{ secrets.ASW_BUCKET }}        
+        SOURCE_DIR: out
+        DEST_DIR: fw_${{ github.run_number }}
