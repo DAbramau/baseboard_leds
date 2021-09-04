@@ -23,7 +23,7 @@ jobs:
       run: pio run
     - name: Build SPIFFS
       run: pio run --target buildfs --environment esp32dev
-    - name: store artifacts
+    - name: copy artifacts
       run: |
         mkdir out
         cp .pio/build/esp32dev/partitions.bin out/bbl_gh_partitions-$GITHUB_RUN_NUMBER.bin
@@ -31,6 +31,7 @@ jobs:
         cp .pio/build/esp32dev/spiffs.bin out/bbl_gh_spiffs-$GITHUB_RUN_NUMBER.bin
         cp /home/runner/.platformio/packages/framework-arduinoespressif32/tools/sdk/bin/bootloader_dio_40m.bin out/bbl_gh_bootloader-$GITHUB_RUN_NUMBER.bin
         cp /home/runner/.platformio/packages/framework-arduinoespressif32/tools/partitions/boot_app0.bin out/bbl_gh_boot_app0-$GITHUB_RUN_NUMBER.bin
+    - name: store artifacts
       uses: actions/upload-artifact@v2
       with:
         name: firmware-${{ github.run_number }}
