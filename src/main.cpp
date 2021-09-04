@@ -40,6 +40,7 @@ void setup()
     {
         printf("  FW REV: %03d\n", BUILD_VERSION);
     }
+    printf("  SERVER: %s\n", BUILD_SERVER);
     printf("  %s %s\n", __DATE__, __TIME__);
     printf("========================\n");
     printf("\n");

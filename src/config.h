@@ -3,6 +3,10 @@
 #include "credentials.h"
 #include "version.h"
 
+#ifndef BUILD_SERVER
+#define BUILD_SERVER                ("unknown")
+#endif
+
 #define CONFIG_UART_BAUD_RATE       (921600)
 
 #define CONFIG_BUTTON_PIN           (0)
