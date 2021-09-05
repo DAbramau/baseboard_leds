@@ -19,7 +19,16 @@
       </header>
     <main class="flex-shrink-0">
       <div class="container">
-      content...
+        <div class="col-lg">
+          <label class="form-label pt-2" for="firmwareFile" name="fw_lbl">Firmware</label>
+          <input type="file" accept=".bin" class="form-control" name="fw" id="firmwareFile" />
+          <label class="form-label pt-2" for="filesystemFile" name="fs_lbl">Filesystem</label>
+          <input type="file" accept=".bin" class="form-control" name="fs" id="filesystemFile" />
+          <button class="btn btn-primary my-3" onclick="upload_fw()">Update</button>
+          <div class="progress" id="pb-container" style="visibility:collapse;">
+            <div id="pb" class="progress-bar" role="progressbar" style="width:0%;" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
+          </div>
+        </div>
       </div>
     </main>
 
@@ -32,15 +41,69 @@
 
   <!-- Custom scripts -->
   <script type="text/javascript">
-  (function() {
+
+  function upload_fw() {
+    var formData = new FormData();
+    let firmwareFile = document.getElementById("firmwareFile");
+    if (firmwareFile.files.length) {
+      formData.append("fw", document.getElementById("firmwareFile").files[0].name);
+      formData.append("fw_file", document.getElementById("firmwareFile").files[0]);
+    }
+    let filesystemFile = document.getElementById("filesystemFile");
+    if (filesystemFile.files.length) {
+      formData.append("fs", document.getElementById("filesystemFile").files[0].name);
+      formData.append("fs_file", document.getElementById("filesystemFile").files[0]);
+    }
+
+    var xhr = new XMLHttpRequest();
+    xhr.onloadstart = function (e) {
+      console.log("OTA start")
+      let barContainer = document.getElementById("pb-container");
+      barContainer.style.visibility = "visible";
+      let bar = document.getElementById("pb");
+      bar.classList.remove("bg-danger");
+      bar.classList.remove("bg-success");
+      bar.setAttribute("aria-valuenow", 0);
+      bar.style.width = "0%";
+    }
+    xhr.onloadend = function (e) {
+      console.log("OTA end")
+      let bar = document.getElementById("pb");
+      if (!bar.classList.contains("bg-danger")) {
+        bar.classList.add("bg-success");
+        setTimeout(function () { location.reload(true); }, 3000);
+      }
+    }
+    xhr.onerror = function (e) {
+      console.log("OTA error");
+      document.getElementById("pb").classList.add("bg-danger");
+    }
+    xhr.onabort = function (e) {
+      console.log("OTA abort");
+    }
+    xhr.upload.addEventListener("progress", function (e) {
+      if (e.lengthComputable) {
+        console.log("OTA progress " + e.loaded + "/" + e.total);
+        let value = (e.loaded * 100) / e.total;
+        let bar = document.getElementById("pb");
+        bar.setAttribute("aria-valuenow", value);
+        bar.style.width = value + "%";
+      }
+    }, false);
+    xhr.open("POST", "/uploadFW");
+    xhr.send(formData);
+  }
+
+  (function () {
     fetch("info")
-      .then(function(response){
+      .then(function (response) {
         return response.json();
       })
-      .then(function(jsonResponse){
+      .then(function (jsonResponse) {
         document.getElementById("version").innerText = jsonResponse['version'];
         document.getElementById("server").innerText = jsonResponse['server'];
       });
   })();
+
   </script>
 </html>

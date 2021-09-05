@@ -4,6 +4,7 @@
 
 #include <ESPmDNS.h>
 #include <SPIFFS.h>
+#include <Update.h>
 #include <WiFi.h>
 
 #include "ArduinoJson.h"
@@ -102,10 +103,79 @@ static void wifi_server_task(void* parameter)
 
         if (SPIFFS.begin(true))
         {
-            _server->on("/", HTTP_GET, [](AsyncWebServerRequest *request) { request->redirect("/index.html"); });
+            _server->on("/", HTTP_GET, [](AsyncWebServerRequest *request)
+                        { request->redirect("/index.html"); });
             _server->serveStatic("/", SPIFFS, "/");
 
             _add_route("/info", _request_get_info);
+            _server->on(
+                "/uploadFW", HTTP_POST, [](AsyncWebServerRequest *request)
+                {
+                    AsyncWebServerResponse *response;
+                    if (!Update.hasError())
+                    {
+                        log_w("update ok");
+                        response = request->beginResponse(200, "text/plain", "OK");
+                    }
+                    else
+                    {
+                        log_w("update failed");
+                        response = request->beginResponse(500, "text/plain", "FAIL");
+                    }
+                    response->addHeader("Connection", "close");
+                    response->addHeader("Access-Control-Allow-Origin", "*");
+                    request->send(response);
+                    vTaskDelay(200);
+                    esp_restart();
+                },
+                [](AsyncWebServerRequest *request, const String &filename, size_t index, uint8_t *data, size_t len, bool final)
+                {
+                    if (!index)
+                    {
+                        if (request->hasParam("fw", true) && (request->getParam("fw", true)->value().equals(filename)))
+                        {
+                            if (!Update.begin(UPDATE_SIZE_UNKNOWN, U_FLASH))
+                            {
+                                Update.printError(Serial);
+                                log_w("firmware update start fail");
+                                return request->send(400, "text/plain", "OTA could not begin (fw)");
+                            }
+                        }
+                        else if (request->hasParam("fs", true) && (request->getParam("fs", true)->value().equals(filename)))
+                        {
+                            if (!Update.begin(UPDATE_SIZE_UNKNOWN, U_SPIFFS))
+                            {
+                                Update.printError(Serial);
+                                log_w("spiffs update start fail");
+                                return request->send(400, "text/plain", "OTA could not begin (fs)");
+                            }
+                        }
+                        else
+                        {
+                            log_w("undefined OTA target");
+                            return request->send(400, "text/plain", "OTA could not begin (undefined)");
+                        }
+                    }
+
+                    if (len)
+                    {
+                        if (Update.write(data, len) != len)
+                        {
+                            log_w("update process failed");
+                            return request->send(400, "text/plain", "OTA could not process OTA chank");
+                        }
+                    }
+
+                    if (final)
+                    {
+                        if (!Update.end(true))
+                        {
+                            log_w("update finish failed");
+                            Update.printError(Serial);
+                            return request->send(400, "text/plain", "Could not end OTA");
+                        }
+                    }
+                });
         }
         else
         {
