@@ -6,6 +6,7 @@
 #include <SPIFFS.h>
 #include <WiFi.h>
 
+#include "ArduinoJson.h"
 #include "ESPAsyncWebServer.h"
 
 /* -------------------------------------------------------------------------- */
@@ -15,6 +16,61 @@
 
 static TaskHandle_t _wifi_server_task_handler;
 static AsyncWebServer* _server;
+
+/* -------------------------------------------------------------------------- */
+
+static void _json_response(AsyncWebServerRequest* request, const DynamicJsonDocument &jsonDocument, int code = 200)
+{
+    log_i("[%d] code: %d type: %s", millis(), code, "application/json");
+    String output;
+    serializeJson(jsonDocument, output);
+    log_i("content: %s", output.c_str());
+    request->send(code, "application/json", output);
+}
+
+/* -------------------------------------------------------------------------- */
+
+static void _request_get_info(AsyncWebServerRequest* request)
+{
+    DynamicJsonDocument jsonBuffer(2048);
+    jsonBuffer["version"] = BUILD_VERSION;
+    jsonBuffer["server"] = BUILD_SERVER;
+    jsonBuffer["build_date"] = __DATE__;
+    jsonBuffer["build_time"] = __TIME__;
+    jsonBuffer["wifi_ssid"] = WiFi.SSID();
+    _json_response(request, jsonBuffer);
+}
+
+/* -------------------------------------------------------------------------- */
+
+static void _add_route(const char* uri,
+                       ArRequestHandlerFunction fn_get,
+                       ArRequestHandlerFunction fn_post = nullptr)
+{
+    if (fn_get != nullptr)
+    {
+        _server->on(uri, HTTP_GET, [uri, fn_get](AsyncWebServerRequest* request) {
+            log_i("[%d] request GET %s", millis(), uri);
+            for (int i = 0; i < request->params(); ++i)
+            {
+                log_i("  [%s] -> %s", request->getParam(i)->name().c_str(), request->getParam(i)->value().c_str());
+            }
+            fn_get(request);
+        });
+    }
+
+    if (fn_post != nullptr)
+    {
+        _server->on(uri, HTTP_POST, [uri, fn_post](AsyncWebServerRequest* request) {
+            log_i("[%d] request POST %s", millis(), uri);
+            for (int i = 0; i < request->params(); ++i)
+            {
+                log_i("  [%s] -> %s", request->getParam(i)->name().c_str(), request->getParam(i)->value().c_str());
+            }
+            fn_post(request);
+        });
+    }
+}
 
 /* -------------------------------------------------------------------------- */
 
@@ -48,6 +104,8 @@ static void wifi_server_task(void* parameter)
         {
             _server->on("/", HTTP_GET, [](AsyncWebServerRequest *request) { request->redirect("/index.html"); });
             _server->serveStatic("/", SPIFFS, "/");
+
+            _add_route("/info", _request_get_info);
         }
         else
         {
