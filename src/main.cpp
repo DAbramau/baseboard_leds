@@ -42,6 +42,7 @@ void setup()
     }
     printf("  SERVER: %s\n", BUILD_SERVER);
     printf("  %s %s\n", __DATE__, __TIME__);
+    printf("  commit SHA: %s\n", BUILD_COMMIT_SHA);
     printf("========================\n");
     printf("\n");
 

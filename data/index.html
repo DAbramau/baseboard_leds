@@ -35,6 +35,9 @@
     <footer class="footer mt-auto py-3 bg-light">
       <div class="container">
         <span class="text-muted">Created by me &middot; &copy; 2021</span>
+        <span id="date" class="text-muted ms-5"></span>
+        <span id="time" class="text-muted""></span>
+        <span id="commit_sha" class="text-muted ms-5"></span>
       </div>
     </footer>
   </body>
@@ -102,6 +105,9 @@
       .then(function (jsonResponse) {
         document.getElementById("version").innerText = jsonResponse['version'];
         document.getElementById("server").innerText = jsonResponse['server'];
+        document.getElementById("date").innerText = jsonResponse['build_date'];
+        document.getElementById("time").innerText = jsonResponse['build_time'];
+        document.getElementById("commit_sha").innerText = jsonResponse['commit_sha'];
       });
   })();
 

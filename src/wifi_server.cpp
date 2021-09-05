@@ -36,6 +36,7 @@ static void _request_get_info(AsyncWebServerRequest* request)
     DynamicJsonDocument jsonBuffer(2048);
     jsonBuffer["version"] = BUILD_VERSION;
     jsonBuffer["server"] = BUILD_SERVER;
+    jsonBuffer["commit_sha"] = BUILD_COMMIT_SHA;
     jsonBuffer["build_date"] = __DATE__;
     jsonBuffer["build_time"] = __TIME__;
     jsonBuffer["wifi_ssid"] = WiFi.SSID();
