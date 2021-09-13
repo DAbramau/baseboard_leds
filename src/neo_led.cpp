@@ -17,7 +17,8 @@ static uint32_t _color_list[] =
     strip_0.Color(0, 127, 0),
     strip_0.Color(0, 0, 127)
 };
-static uint32_t _color_index = 0;
+
+static uint32_t _mode_index = 0;
 
 /* -------------------------------------------------------------------------- */
 
@@ -28,20 +29,94 @@ static TaskHandle_t _neo_led_task_handler;
 
 /* -------------------------------------------------------------------------- */
 
+static void _mode_1(void)
+{
+    static uint32_t step = 0;
+
+    const uint32_t color_index = step / (CONFIG_NEOPIXEL_CH0_NUM + 1);
+    const uint32_t frame_index = step % (CONFIG_NEOPIXEL_CH0_NUM + 1);
+
+    for (uint32_t i = 0; i < CONFIG_NEOPIXEL_CH0_NUM; ++i)
+    {
+        strip_0.setPixelColor(i, i < frame_index ? _color_list[color_index] : 0);
+    }
+
+    ++step;
+    if (step == (CONFIG_NEOPIXEL_CH0_NUM + 1) * ARRAY_SIZE(_color_list))
+    {
+        step = 0;
+    }
+}
+
+/* -------------------------------------------------------------------------- */
+
+static void _mode_2(void)
+{
+    for (uint32_t i = 0; i < CONFIG_NEOPIXEL_CH0_NUM; ++i)
+    {
+        strip_0.setPixelColor(i, _color_list[rand() % ARRAY_SIZE(_color_list)]);
+    }
+}
+
+/* -------------------------------------------------------------------------- */
+
+static void _mode_3(void)
+{
+    static uint32_t step = 0;
+    static uint32_t color = 0;
+
+    static uint32_t buffer[CONFIG_NEOPIXEL_CH0_NUM] = {0};
+
+    for (uint32_t i = CONFIG_NEOPIXEL_CH0_NUM - 1; i > 0; --i)
+    {
+        buffer[i] = buffer[i - 1];
+    }
+
+    if (step == 0)
+    {
+        color = strip_0.Color(rand() % 256, rand() % 256 , rand() % 256);
+    }
+
+    if (step < 2)
+    {
+        buffer[0] = color;
+    }
+    else
+    {
+        buffer[0] = 0;
+    }
+
+    for (uint32_t i = 0; i < CONFIG_NEOPIXEL_CH0_NUM; ++i)
+    {
+        strip_0.setPixelColor(i, buffer[i]);
+    }
+
+    ++step;
+    if (step == 6)
+    {
+        step = 0;
+    }
+}
+
+/* -------------------------------------------------------------------------- */
+
+static void(*_modes[])(void) = 
+{
+    _mode_1,
+    _mode_2,
+    _mode_3
+};
+
+/* -------------------------------------------------------------------------- */
+
 static void neo_led_task(void* parameter)
 {
     for (;;)
     {
-        static uint32_t frame = 1;
-        for (uint32_t i = 0; i < CONFIG_NEOPIXEL_CH0_NUM; ++i)
-        {
-            strip_0.setPixelColor(i, i < frame ? _color_list[_color_index] : 0);
-        }
-
-        frame = (frame + 1) % (CONFIG_NEOPIXEL_CH0_NUM + 1);
+        _modes[_mode_index]();
         strip_0.show();
 
-        delay(1000);
+        delay(100);
     }
 }
 
@@ -65,7 +140,7 @@ void neo_led_init(void)
 
 void neo_led_next_mode(void)
 {
-    _color_index = (_color_index + 1) % ARRAY_SIZE(_color_list);
+    _mode_index = (_mode_index + 1) % ARRAY_SIZE(_modes);
 }
 
 /* -------------------------------------------------------------------------- */

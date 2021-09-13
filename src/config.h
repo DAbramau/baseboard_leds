@@ -15,7 +15,7 @@
 
 #define CONFIG_BUTTON_PIN           (0)
 
-#define CONFIG_NEOPIXEL_CH0_PIN     (26)
-#define CONFIG_NEOPIXEL_CH0_NUM     (5)
+#define CONFIG_NEOPIXEL_CH0_PIN     (21)
+#define CONFIG_NEOPIXEL_CH0_NUM     (12)
 
 #define CONFIG_MDNS_NAME            ("bbled")
