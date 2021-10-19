@@ -8,7 +8,7 @@
 
 /* -------------------------------------------------------------------------- */
 
-static NeoPixelBus<NeoGrbFeature, NeoWs2813Method> strip_0(CONFIG_NEOPIXEL_CH0_NUM, CONFIG_NEOPIXEL_CH0_PIN);
+static NeoPixelBus<NeoRgbFeature, NeoWs2813Method> strip_0(CONFIG_NEOPIXEL_CH0_NUM, CONFIG_NEOPIXEL_CH0_PIN);
 
 static RgbColor _color_list[] = 
 {
