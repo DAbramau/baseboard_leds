@@ -121,7 +121,7 @@ static void wifi_server_task(void* parameter)
             _server->serveStatic("/", SPIFFS, "/");
 
             _add_route("/info", _request_get_info);
-            _add_route("next_mode", _request_next_mode);
+            _add_route("/next_mode", _request_next_mode);
             _server->on(
                 "/uploadFW", HTTP_POST, [](AsyncWebServerRequest *request)
                 {
