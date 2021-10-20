@@ -9,6 +9,8 @@
 /* -------------------------------------------------------------------------- */
 
 static NeoPixelBus<NeoRgbFeature, NeoWs2813Method> strip_0(CONFIG_NEOPIXEL_CH0_NUM, CONFIG_NEOPIXEL_CH0_PIN);
+static NeoPixelBus<NeoRgbFeature, NeoWs2813Method> strip_1(CONFIG_NEOPIXEL_CH1_NUM, CONFIG_NEOPIXEL_CH1_PIN);
+static NeoPixelBus<NeoRgbFeature, NeoWs2813Method> strip_2(CONFIG_NEOPIXEL_CH2_NUM, CONFIG_NEOPIXEL_CH2_PIN);
 
 static RgbColor _color_list[] = 
 {
@@ -38,6 +40,8 @@ static void _mode_1(void)
     for (uint32_t i = 0; i < CONFIG_NEOPIXEL_CH0_NUM; ++i)
     {
         strip_0.SetPixelColor(i, i < frame_index ? _color_list[color_index] : 0);
+        strip_1.SetPixelColor(i, i < frame_index ? _color_list[color_index] : 0);
+        strip_2.SetPixelColor(i, i < frame_index ? _color_list[color_index] : 0);
     }
 
     ++step;
@@ -54,6 +58,8 @@ static void _mode_2(void)
     for (uint32_t i = 0; i < CONFIG_NEOPIXEL_CH0_NUM; ++i)
     {
         strip_0.SetPixelColor(i, _color_list[rand() % ARRAY_SIZE(_color_list)]);
+        strip_1.SetPixelColor(i, _color_list[rand() % ARRAY_SIZE(_color_list)]);
+        strip_2.SetPixelColor(i, _color_list[rand() % ARRAY_SIZE(_color_list)]);
     }
 }
 
@@ -88,6 +94,8 @@ static void _mode_3(void)
     for (uint32_t i = 0; i < CONFIG_NEOPIXEL_CH0_NUM; ++i)
     {
         strip_0.SetPixelColor(i, buffer[i]);
+        strip_1.SetPixelColor(i, buffer[i]);
+        strip_2.SetPixelColor(i, buffer[i]);
     }
 
     ++step;
@@ -124,7 +132,11 @@ static void neo_led_task(void* parameter)
 void neo_led_init(void)
 {
     strip_0.Begin();
+    strip_1.Begin();
+    strip_2.Begin();
     strip_0.Show();
+    strip_1.Show();
+    strip_2.Show();
 
     xTaskCreate(neo_led_task,
                 "neo_led",
