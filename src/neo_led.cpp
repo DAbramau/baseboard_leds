@@ -8,9 +8,9 @@
 
 /* -------------------------------------------------------------------------- */
 
-static NeoPixelBus<NeoRgbFeature, NeoWs2813Method> strip_0(CONFIG_NEOPIXEL_CH0_NUM, CONFIG_NEOPIXEL_CH0_PIN);
-static NeoPixelBus<NeoRgbFeature, NeoWs2813Method> strip_1(CONFIG_NEOPIXEL_CH1_NUM, CONFIG_NEOPIXEL_CH1_PIN);
-static NeoPixelBus<NeoRgbFeature, NeoWs2813Method> strip_2(CONFIG_NEOPIXEL_CH2_NUM, CONFIG_NEOPIXEL_CH2_PIN);
+static NeoPixelBus<NeoRgbFeature, NeoEsp32BitBangWs2813Method> strip_0(CONFIG_NEOPIXEL_CH0_NUM, CONFIG_NEOPIXEL_CH0_PIN);
+static NeoPixelBus<NeoRgbFeature, NeoEsp32BitBangWs2813Method> strip_1(CONFIG_NEOPIXEL_CH1_NUM, CONFIG_NEOPIXEL_CH1_PIN);
+static NeoPixelBus<NeoRgbFeature, NeoEsp32BitBangWs2813Method> strip_2(CONFIG_NEOPIXEL_CH2_NUM, CONFIG_NEOPIXEL_CH2_PIN);
 
 static RgbColor _color_list[] = 
 {
@@ -122,6 +122,8 @@ static void neo_led_task(void* parameter)
     {
         _modes[_mode_index]();
         strip_0.Show();
+        strip_1.Show();
+        strip_2.Show();
 
         delay(100);
     }
