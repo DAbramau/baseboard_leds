@@ -2,16 +2,7 @@
 
 #include "credentials.h"
 #include "version.h"
-
-/* -------------------------------------------------------------------------- */
-
-#ifndef BUILD_SERVER
-#define BUILD_SERVER                ("unknown")
-#endif
-
-#ifndef BUILD_COMMIT_SHA
-#define BUILD_COMMIT_SHA            ("undefined")
-#endif
+#include "config_stub.h"
 
 /* ---------------------------------- board --------------------------------- */
 
@@ -25,15 +16,14 @@
 #define CONFIG_NEOPIXEL_CH4_PIN     (26)
 #define CONFIG_NEOPIXEL_CH5_PIN     (27)
 
-
 /* ------------------------------- led config ------------------------------- */
 
-#define CONFIG_NEOPIXEL_CH0_NUM     (12)
-#define CONFIG_NEOPIXEL_CH1_NUM     (12)
-#define CONFIG_NEOPIXEL_CH2_NUM     (12)
-#define CONFIG_NEOPIXEL_CH3_NUM     (12)
-#define CONFIG_NEOPIXEL_CH4_NUM     (12)
-#define CONFIG_NEOPIXEL_CH5_NUM     (12)
+#define CONFIG_NEOPIXEL_CH0_NUM     (130)
+#define CONFIG_NEOPIXEL_CH1_NUM     (20)
+#define CONFIG_NEOPIXEL_CH2_NUM     (20)
+#define CONFIG_NEOPIXEL_CH3_NUM     (20)
+#define CONFIG_NEOPIXEL_CH4_NUM     (20)
+#define CONFIG_NEOPIXEL_CH5_NUM     (20)
 
 /* ------------------------------- wifi config ------------------------------ */
 

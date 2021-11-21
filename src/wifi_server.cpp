@@ -57,6 +57,27 @@ static void _request_next_mode(AsyncWebServerRequest* request)
 
 /* -------------------------------------------------------------------------- */
 
+static void _request_set_mode(AsyncWebServerRequest* request)
+{
+    if (request->hasParam("mode"))
+    {
+        uint32_t mode = atoi(request->getParam("mode")->value().c_str());
+        neo_led_set_mode(mode);
+    }
+    DynamicJsonDocument jsonBuffer(2048);
+    jsonBuffer["status"] = "success";
+    _json_response(request, jsonBuffer);
+}
+
+/* -------------------------------------------------------------------------- */
+
+static void _request_reboot(AsyncWebServerRequest* request)
+{
+    esp_restart();
+}
+
+/* -------------------------------------------------------------------------- */
+
 static void _add_route(const char* uri,
                        ArRequestHandlerFunction fn_get,
                        ArRequestHandlerFunction fn_post = nullptr)
@@ -122,6 +143,8 @@ static void wifi_server_task(void* parameter)
 
             _add_route("/info", _request_get_info);
             _add_route("/next_mode", _request_next_mode);
+            _add_route("/set_mode", _request_set_mode);
+            _add_route("/reboot", _request_reboot);
             _server->on(
                 "/uploadFW", HTTP_POST, [](AsyncWebServerRequest *request)
                 {

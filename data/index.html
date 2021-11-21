@@ -12,24 +12,56 @@
 
   </head>
   <body class="d-flex flex-column h-100">
-    
+
     <!-- Begin page content -->
       <header class="d-flex align-items-center p-3 mb-5 ml-5 border-bottom">    
           <span class="fs-4 d-flex align-items-center text-dark text-decoration-none">Baseboard LEDs ver.&nbsp<span id="version"></span>&nbsp;(<span id="server"></span>)</span>
       </header>
+
     <main class="flex-shrink-0">
       <div class="container">
-        <div class="col-lg">
-          <label class="form-label pt-2" for="firmwareFile" name="fw_lbl">Firmware</label>
-          <input type="file" accept=".bin" class="form-control" name="fw" id="firmwareFile" />
-          <label class="form-label pt-2" for="filesystemFile" name="fs_lbl">Filesystem</label>
-          <input type="file" accept=".bin" class="form-control" name="fs" id="filesystemFile" />
-          <button class="btn btn-primary my-3" onclick="upload_fw()">Update</button>
-          <div class="progress" id="pb-container" style="visibility:collapse;">
-            <div id="pb" class="progress-bar" role="progressbar" style="width:0%;" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
+        <div class="col-lg card mb-4">
+          <div class="card-header">
+            Control
+          </div>
+          <div class="card-body">
+            <div class="col-lg card mb-3">
+              <div class="card-header">
+                Modes
+              </div>
+              <div class="card-body">
+                <button class="btn btn-primary me-4" id="nextMode" onclick="next_mode()">Next</button>
+                <button class="btn btn-primary me-2" id="setMode1" onclick="set_mode(0)">1</button>
+                <button class="btn btn-primary me-2" id="setMode2" onclick="set_mode(1)">2</button>
+                <button class="btn btn-primary me-2" id="setMode3" onclick="set_mode(2)">3</button>
+                <button class="btn btn-primary me-2" id="setMode4" onclick="set_mode(3)">4</button>
+              </div>
+            </div>
+            <div class="col-lg card">
+              <div class="card-header">
+                System
+              </div>
+              <div class="card-body">
+                <button class="btn btn-danger" onclick="reboot()">Reboot</button>
+              </div>
+            </div>
           </div>
         </div>
-        <button class="btn btn-primary my-3" id="nextMode" onclick="next_mode()">Next mode</button>
+        <div class="col-lg card mb-4">
+          <div class="card-header">
+            Firmware Update
+          </div>
+          <div class="card-body">
+            <label class="form-label" for="firmwareFile" name="fw_lbl">Firmware</label>
+            <input type="file" accept=".bin" class="form-control" name="fw" aria-placeholder="Firmware" placeholder="Firmware" id="firmwareFile" />
+            <label class="form-label pt-2" for="filesystemFile" name="fs_lbl">Filesystem</label>
+            <input type="file" accept=".bin" class="form-control mb-4" name="fs" placeholder="Filesystem" id="filesystemFile" />
+            <button class="btn btn-primary mb-3" onclick="upload_fw()">Upload</button>
+            <div class="progress" id="pb-container" style="visibility:collapse;">
+              <div id="pb" class="progress-bar" role="progressbar" style="width:0%;" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
+            </div>
+          </div>
+        </div>
       </div>
     </main>
 
@@ -48,6 +80,14 @@
 
   function next_mode() {
     fetch("next_mode");
+  }
+
+  function set_mode(mode) {
+    fetch("set_mode?" + new URLSearchParams({mode: mode}));
+  }
+
+  function reboot() {
+    fetch("reboot");
   }
 
   function upload_fw() {
