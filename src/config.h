@@ -18,12 +18,15 @@
 
 /* ------------------------------- led config ------------------------------- */
 
-#define CONFIG_NEOPIXEL_CH0_NUM     (130)
-#define CONFIG_NEOPIXEL_CH1_NUM     (20)
-#define CONFIG_NEOPIXEL_CH2_NUM     (20)
-#define CONFIG_NEOPIXEL_CH3_NUM     (20)
-#define CONFIG_NEOPIXEL_CH4_NUM     (20)
-#define CONFIG_NEOPIXEL_CH5_NUM     (20)
+#define CONFIG_MAX_EFFECT_PIXEL_NUM (400)
+#define CONFIG_MAX_STRIPE_PIXEL_NUM (400)
+
+#define CONFIG_NEOPIXEL_CH0_NUM     (145)
+#define CONFIG_NEOPIXEL_CH1_NUM     (98)
+#define CONFIG_NEOPIXEL_CH2_NUM     (306)
+#define CONFIG_NEOPIXEL_CH3_NUM     (400)
+#define CONFIG_NEOPIXEL_CH4_NUM     (400)
+#define CONFIG_NEOPIXEL_CH5_NUM     (400)
 
 /* ------------------------------- wifi config ------------------------------ */
 

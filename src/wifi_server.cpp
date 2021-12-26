@@ -33,6 +33,24 @@ static void _json_response(AsyncWebServerRequest* request, const DynamicJsonDocu
 
 /* -------------------------------------------------------------------------- */
 
+static void _response_success(AsyncWebServerRequest* request)
+{
+    DynamicJsonDocument jsonBuffer(2048);
+    jsonBuffer["status"] = "success";
+    _json_response(request, jsonBuffer);
+}
+
+/* -------------------------------------------------------------------------- */
+
+static void _response_error(AsyncWebServerRequest* request)
+{
+    DynamicJsonDocument jsonBuffer(2048);
+    jsonBuffer["status"] = "error";
+    _json_response(request, jsonBuffer);
+}
+
+/* -------------------------------------------------------------------------- */
+
 static void _request_get_info(AsyncWebServerRequest* request)
 {
     DynamicJsonDocument jsonBuffer(2048);
@@ -50,9 +68,7 @@ static void _request_get_info(AsyncWebServerRequest* request)
 static void _request_next_mode(AsyncWebServerRequest* request)
 {
     neo_led_next_mode();
-    DynamicJsonDocument jsonBuffer(2048);
-    jsonBuffer["status"] = "success";
-    _json_response(request, jsonBuffer);
+    _response_success(request);
 }
 
 /* -------------------------------------------------------------------------- */
@@ -63,10 +79,44 @@ static void _request_set_mode(AsyncWebServerRequest* request)
     {
         uint32_t mode = atoi(request->getParam("mode")->value().c_str());
         neo_led_set_mode(mode);
+        _response_success(request);
     }
-    DynamicJsonDocument jsonBuffer(2048);
-    jsonBuffer["status"] = "success";
-    _json_response(request, jsonBuffer);
+    else
+    {
+        _response_error(request);
+    }
+}
+
+/* -------------------------------------------------------------------------- */
+
+static void _request_set_config_mode(AsyncWebServerRequest* request)
+{
+    neo_led_set_config_mode();
+    _response_success(request);
+}
+
+/* -------------------------------------------------------------------------- */
+
+static void _request_config_next_stripe(AsyncWebServerRequest* request)
+{
+    neo_led_config_next_stripe();
+    _response_success(request);
+}
+
+/* -------------------------------------------------------------------------- */
+
+static void _request_config_next_step(AsyncWebServerRequest* request)
+{
+    neo_led_config_next_step();
+    _response_success(request);
+}
+
+/* -------------------------------------------------------------------------- */
+
+static void _request_config_previous_step(AsyncWebServerRequest* request)
+{
+    neo_led_config_previous_step();
+    _response_success(request);
 }
 
 /* -------------------------------------------------------------------------- */
@@ -111,6 +161,7 @@ static void _add_route(const char* uri,
 
 static void wifi_server_task(void* parameter)
 {
+    vTaskDelay(5000);
     String hostname = "BBL-" + String((uint32_t)(ESP.getEfuseMac()));
     log_i("Name: %s\n", hostname.c_str());
     WiFi.setHostname(hostname.c_str());
@@ -228,12 +279,12 @@ static void wifi_server_task(void* parameter)
 
 void wifi_server_init(void)
 {
-    xTaskCreate(wifi_server_task,
+    xTaskCreatePinnedToCore(wifi_server_task,
                 "wifi_server",
                 TASK_WIFI_SERVER_STACK_SIZE,
                 NULL,
                 TASK_WIFI_SERVER_PRIORITY,
-                &_wifi_server_task_handler);
+                &_wifi_server_task_handler, 0);
 }
 
 /* -------------------------------------------------------------------------- */

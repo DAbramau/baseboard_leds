@@ -6,12 +6,17 @@
 
 #include "NeoDynamicRgbFeature.h"
 
+#include "effects/effect_factory.h"
+
 #include "utils.h"
 
 /* -------------------------------------------------------------------------- */
 
-#define TASK_NEO_LED_STACK_SIZE             (3000)
-#define TASK_NEO_LED_PRIORITY               (configMAX_PRIORITIES - 5)  
+#define TASK_NEO_LED_STACK_SIZE             (30000)
+#define TASK_NEO_LED_PRIORITY               (configMAX_PRIORITIES - 3)  
+
+
+static portMUX_TYPE _mux = portMUX_INITIALIZER_UNLOCKED;
 
 /* -------------------------------------------------------------------------- */
 
@@ -20,141 +25,74 @@ typedef NeoPixelBus<NeoDynamicRgbFeature, NeoEsp32BitBangWs2813Method> stripe_t;
 typedef struct {
     uint32_t pin;
     uint32_t led_number;
+    uint32_t offset;
+    bool reverse;
     NeoDynamicRgbFeature::RGBOrder rgb_order;
-} stripe_config_t;
-
-typedef struct {
-    uint32_t step;
     stripe_t* stripe;
-} stripe_state_t;
+} stripe_config_t;
 
 /* -------------------------------------------------------------------------- */
 
-static stripe_config_t _stripe_config_list[2] = {
-    {CONFIG_NEOPIXEL_CH0_PIN, CONFIG_NEOPIXEL_CH0_NUM, NeoDynamicRgbFeature::RGBOrder::RGB_ORDER_GRB},
-    {CONFIG_NEOPIXEL_CH5_PIN, CONFIG_NEOPIXEL_CH5_NUM, NeoDynamicRgbFeature::RGBOrder::RGB_ORDER_RGB}
-};
-
-static stripe_state_t _stripe_state_list[2] = { 0 };
-
-static stripe_config_t* _stripe_config = NULL;
-static stripe_state_t* _stripe_state = NULL;
-
-static RgbColor _color_list[] = {
-    RgbColor(127, 0, 0),
-    RgbColor(0, 127, 0),
-    RgbColor(0, 0, 127)
+static stripe_config_t _stripe_config_list[] = {
+    {CONFIG_NEOPIXEL_CH0_PIN, CONFIG_NEOPIXEL_CH0_NUM, 0, false, NeoDynamicRgbFeature::RGBOrder::RGB_ORDER_GRB, nullptr},
+    {CONFIG_NEOPIXEL_CH1_PIN, CONFIG_NEOPIXEL_CH1_NUM, 208, false, NeoDynamicRgbFeature::RGBOrder::RGB_ORDER_RGB, nullptr},
+    // {CONFIG_NEOPIXEL_CH1_PIN, CONFIG_NEOPIXEL_CH1_NUM, 0, false, NeoDynamicRgbFeature::RGBOrder::RGB_ORDER_RGB, nullptr},
+    {CONFIG_NEOPIXEL_CH2_PIN, CONFIG_NEOPIXEL_CH2_NUM, 0, true, NeoDynamicRgbFeature::RGBOrder::RGB_ORDER_RGB, nullptr}
+    // {CONFIG_NEOPIXEL_CH3_PIN, CONFIG_NEOPIXEL_CH3_NUM, 0, NeoDynamicRgbFeature::RGBOrder::RGB_ORDER_RGB, nullptr},
+    // {CONFIG_NEOPIXEL_CH4_PIN, CONFIG_NEOPIXEL_CH4_NUM, 0, NeoDynamicRgbFeature::RGBOrder::RGB_ORDER_RGB, nullptr},
+    // {CONFIG_NEOPIXEL_CH5_PIN, CONFIG_NEOPIXEL_CH5_NUM, 0, NeoDynamicRgbFeature::RGBOrder::RGB_ORDER_RGB, nullptr}
 };
 
 /* -------------------------------------------------------------------------- */
 
 static TaskHandle_t _neo_led_task_handler;
 
-/* -------------------------------------------------------------------------- */
+static uint32_t _effect_index = 0;
+static uint32_t _pending_effect = 0;
 
-static void _mode_1(void)
-{
-    const uint32_t color_index = _stripe_state->step / (_stripe_config->led_number + 1);
-    const uint32_t frame_index = _stripe_state->step % (_stripe_config->led_number + 1);
-
-    for (uint32_t j = 0; j < _stripe_config->led_number; ++j)
-    {
-        _stripe_state->stripe->SetPixelColor(j, j < frame_index ? _color_list[color_index] : 0);
-    }
-
-    INCREMENT_WRAP(_stripe_state->step, (_stripe_config->led_number + 1) * ARRAY_SIZE(_color_list));
-}
-
-/* -------------------------------------------------------------------------- */
-
-static void _mode_2(void)
-{
-    for (uint32_t j = 0; j < _stripe_config->led_number; ++j)
-    {
-        _stripe_state->stripe->SetPixelColor(j, _color_list[rand() % ARRAY_SIZE(_color_list)]);
-    }
-}
-
-/* -------------------------------------------------------------------------- */
-
-static void _mode_3(void)
-{
-    for (uint32_t j = _stripe_config->led_number - 1; j > 0; --j)
-    {
-        _stripe_state->stripe->SetPixelColor(j, _stripe_state->stripe->GetPixelColor(j - 1));
-    }
-    if (_stripe_state->step == 0)
-    {
-        _stripe_state->stripe->SetPixelColor(0, HslColor((float)(rand() % 256) / (float)(256), 1, 0.5));
-    } else if (_stripe_state->step < 2)
-    {
-        _stripe_state->stripe->SetPixelColor(0, _stripe_state->stripe->GetPixelColor(1));
-    } else
-    {
-        _stripe_state->stripe->SetPixelColor(0, 0);
-    }
-
-    INCREMENT_WRAP(_stripe_state->step, 20);
-}
-
-/* -------------------------------------------------------------------------- */
-
-static void _mode_4(void)
-{
-    const uint32_t length = 150;
-
-    for (uint32_t j = 0; j < _stripe_config->led_number; ++j)
-    {
-        _stripe_state->stripe->SetPixelColor(_stripe_config->led_number - j - 1, HslColor((float)((j + _stripe_state->step) % (length + 1))/(float)(length), 1, 0.3));
-    }
-
-    INCREMENT_WRAP(_stripe_state->step, length);
-}
-
-/* -------------------------------------------------------------------------- */
-
-static void(*_modes[])(void) = 
-{
-    _mode_1,
-    _mode_2,
-    _mode_3,
-    _mode_4
-};
-
-static void(*_mode)(void) = _mode_1;
-static uint32_t _mode_index = 0;
-static uint32_t _pending_mode = 0;
 
 /* -------------------------------------------------------------------------- */
 
 static void neo_led_task(void* parameter)
 {
-    delay(2000);
+    static Effect* _effect = get_effect(_effect_index);
+    _effect->reset();
     for (;;)
     {
-        if (_pending_mode != _mode_index)
+        if (_pending_effect != _effect_index)
         {
-            _mode_index = _pending_mode;
-            _mode = _modes[_mode_index];
-            for (uint32_t i = 0; i < ARRAY_SIZE(_stripe_state_list); ++i)
+            _effect_index = _pending_effect;
+           // delete _effect;
+            _effect = get_effect(_effect_index);
+            log_i("new effect %X", _effect);
+            _effect->reset();
+        }
+
+        uint32_t pause = _effect->step();
+
+        for (uint32_t i = 0; i < ARRAY_SIZE(_stripe_config_list); ++i)
+        {
+            NeoDynamicRgbFeature::setRgbOrder(_stripe_config_list[i].rgb_order);
+            if (_stripe_config_list[i].reverse)
             {
-                _stripe_state_list[i].step = 0;
+                for (uint32_t j = 0; j < _stripe_config_list[i].led_number; ++j)
+                {
+                    _stripe_config_list[i].stripe->SetPixelColor(_stripe_config_list[i].led_number - j - 1, _effect->getColor(j + _stripe_config_list[i].offset));
+                }
             }
+            else
+            {
+                for (uint32_t j = 0; j < _stripe_config_list[i].led_number; ++j)
+                {
+                    _stripe_config_list[i].stripe->SetPixelColor(j, _effect->getColor(j + _stripe_config_list[i].offset));
+                }
+            }
+            portENTER_CRITICAL(&_mux);
+            _stripe_config_list[i].stripe->Show();
+            portEXIT_CRITICAL(&_mux);
         }
 
-        for (uint32_t i = 0; i < ARRAY_SIZE(_stripe_state_list); ++i)
-        {
-            _stripe_state = &_stripe_state_list[i];
-            _stripe_config = &_stripe_config_list[i];
-            NeoDynamicRgbFeature::setRgbOrder(_stripe_config->rgb_order);
-            _mode();
-        }
-        for (uint32_t i = 0; i < ARRAY_SIZE(_stripe_state_list); ++i)
-        {
-            _stripe_state_list[i].stripe->Show();
-        }
-
-        delay(70);
+        delay(pause);
     }
 }
 
@@ -162,42 +100,72 @@ static void neo_led_task(void* parameter)
 
 void neo_led_init(void)
 {
-    for (uint32_t i = 0; i < ARRAY_SIZE(_stripe_state_list); ++i)
+    for (uint32_t i = 0; i < ARRAY_SIZE(_stripe_config_list); ++i)
     {
-        _stripe_state_list[i].stripe = new stripe_t(_stripe_config_list[i].led_number, _stripe_config_list[i].pin);
-    }
-    for (uint32_t i = 0; i < ARRAY_SIZE(_stripe_state_list); ++i)
-    {
-        _stripe_state_list[i].stripe->Begin();
-    }
-    for (uint32_t i = 0; i < ARRAY_SIZE(_stripe_state_list); ++i)
-    {
-        _stripe_state_list[i].stripe->Show();
+        _stripe_config_list[i].stripe = new stripe_t(_stripe_config_list[i].led_number, _stripe_config_list[i].pin);
+        _stripe_config_list[i].stripe->Begin();
+        _stripe_config_list[i].stripe->ClearTo(0);
+        _stripe_config_list[i].stripe->Show();
     }
 
-    xTaskCreate(neo_led_task,
+    xTaskCreatePinnedToCore(neo_led_task,
                 "neo_led",
                 TASK_NEO_LED_STACK_SIZE,
                 NULL,
                 TASK_NEO_LED_PRIORITY,
-                &_neo_led_task_handler);
+                &_neo_led_task_handler, 0);
 }
 
 /* -------------------------------------------------------------------------- */
 
 void neo_led_next_mode(void)
 {
-    _pending_mode = (_mode_index + 1) % ARRAY_SIZE(_modes);
+    _pending_effect = (_effect_index + 1) % get_number_of_effects();
 }
 
 /* -------------------------------------------------------------------------- */
 
-void neo_led_set_mode(uint32_t mode)
+void neo_led_set_mode(uint32_t effect_index)
 {
-    if (mode < ARRAY_SIZE(_modes))
-    {
-        _pending_mode = mode;
-    }
+    // if (mode < ARRAY_SIZE(_modes))
+    // {
+        _pending_effect = effect_index;
+    // }
+}
+
+/* -------------------------------------------------------------------------- */
+
+void neo_led_set_config_mode(void)
+{
+    // _pending_mode = UINT32_MAX;
+}
+
+/* -------------------------------------------------------------------------- */
+
+void neo_led_config_next_stripe(void)
+{
+    // _pending_stripe_index = (_config_stripe_index + 1) % ARRAY_SIZE(_stripe_state_list);
+}
+
+/* -------------------------------------------------------------------------- */
+
+void neo_led_config_next_step(void)
+{
+    // _pending_step = (_config_step + 1) % 1024;
+}
+
+/* -------------------------------------------------------------------------- */
+
+void neo_led_config_previous_step(void)
+{
+    // if (_config_step == 0)
+    // {
+    //     _pending_step = 1024;
+    // }
+    // else
+    // {
+    //     _pending_step = _config_step - 1;
+    // }
 }
 
 /* -------------------------------------------------------------------------- */

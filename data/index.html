@@ -86,6 +86,22 @@
     fetch("set_mode?" + new URLSearchParams({mode: mode}));
   }
 
+  function set_config_mode() {
+    fetch("configure");
+  }
+
+  function config_next_stripe() {
+    fetch("config_next_stripe");
+  }
+
+  function config_next_step() {
+    fetch("config_next_step");
+  }
+
+  function config_previous_step() {
+    fetch("config_previous_step");
+  }
+
   function reboot() {
     fetch("reboot");
   }
